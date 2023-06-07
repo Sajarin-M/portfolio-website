@@ -1,5 +1,12 @@
 <script>
   import ContactItem from './contact-item.svelte';
+  import { send } from '@emailjs/browser';
+
+  let name = '';
+  let email = '';
+  let message = '';
+
+  let lastSentKey = 'last-sent';
 </script>
 
 <section
@@ -53,18 +60,80 @@
       <div
         class="bg-secondary-700/20 rounded-b-xl p-6 -mx-6 -mb-6 xl:(mx-none mb-none rounded-t-xl p-7)"
       >
-        <form class="mt-6">
+        <form
+          class="mt-6"
+          on:submit|preventDefault={async () => {
+            try {
+              let shouldSent = true;
+              const now = new Date();
+              const lastSendExists = localStorage.getItem(lastSentKey);
+              if (lastSendExists) {
+                const lastSendTime = new Date(lastSendExists);
+                if (
+                  lastSendTime &&
+                  now.getTime() - lastSendTime.getTime() < 5 * 24 * 60 * 60 * 1000
+                ) {
+                  shouldSent = confirm(
+                    'You have recently sent a message. Are you sure you want to send another?',
+                  );
+                } else {
+                  localStorage.removeItem(lastSentKey);
+                }
+              }
+              if (shouldSent) {
+                await send(
+                  'portfolio-website',
+                  'contact-form',
+                  {
+                    from_name: name,
+                    from_email: email,
+                    message,
+                  },
+                  '_QLbR-ZMOpEnkNIJ-',
+                );
+                localStorage.setItem(lastSentKey, now.toISOString());
+                alert('Message sent successfully');
+                name = '';
+                email = '';
+                message = '';
+              }
+            } catch (error) {
+              alert('Failed to sent message. Please try again !!');
+            }
+          }}
+        >
           <div class="mb-6">
             <label for="name" class="label asterisk">Name</label>
-            <input type="text" id="name" class="input" placeholder="John" required />
+            <input
+              required
+              id="name"
+              type="text"
+              class="input"
+              placeholder="John"
+              bind:value={name}
+            />
           </div>
           <div class="mb-6">
             <label for="email" class="label asterisk">Email</label>
-            <input type="email" id="email" class="input" placeholder="john@gmail.com" required />
+            <input
+              required
+              id="email"
+              type="email"
+              class="input"
+              bind:value={email}
+              placeholder="john@gmail.com"
+            />
           </div>
           <div class="mb-6">
-            <label for="message" class="label">Message</label>
-            <textarea rows="8" id="message" class="input resize-none" placeholder="Something..." />
+            <label for="message" class="label asterisk">Message</label>
+            <textarea
+              rows="8"
+              required
+              id="message"
+              bind:value={message}
+              class="input resize-none"
+              placeholder="How are you ?"
+            />
           </div>
           <button type="submit" class="btn text-[0.9rem]">Submit</button>
         </form>

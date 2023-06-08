@@ -2,7 +2,7 @@
   import { page } from '$app/stores';
   import { remToPx } from '$lib/utils/screen';
   import wheel from '$lib/utils/wheel';
-  import { fade } from 'svelte/transition';
+  import { blur, fade } from 'svelte/transition';
   import Burger from './burger.svelte';
 
   const navLinks = [
@@ -25,8 +25,16 @@
 </script>
 
 <div class="h-[0.5rem] md:[0.6rem] xl:h-[0.8rem]" />
-<nav class="navbar" class:scrolled={scrollY >= remToPx(0.9)}>
-  <div class="w-full flex justify-between items-center max-w-[82rem] mx-auto">
+<nav
+  class="relative px-5 xl:px-7 w-full flex items-center sticky top-0 z-20 transition-all bg-transparent h-navbar"
+>
+  {#if scrollY >= remToPx(0.9)}
+    <div
+      transition:blur={{ duration: 200 }}
+      class="absolute top-0 left-0 bottom-0 right-0 bg-secondary-700/95 backdrop-blur-sm shadow-sm shadow-secondary-600/50 backdrop-saturate-100 z-10"
+    />
+  {/if}
+  <div class="w-full flex justify-between items-center max-w-[82rem] mx-auto z-20">
     <a href="/" class="flex items-center gap-3 decoration-none">
       <div class="rounded-full text-gray-100 bg-primary-600 p-2 font-bold">SM</div>
       <p class="text-gray-100 font-bold cursor-pointer hidden sm:block text-[1.1rem]">
@@ -75,13 +83,3 @@
 </nav>
 
 <svelte:window use:wheel={{ scrollable: !hamburgerOpen }} bind:scrollY />
-
-<style lang="postcss">
-  .navbar {
-    @apply px-5 xl:px-7 w-full flex items-center sticky top-0 z-20 transition-all bg-transparent h-navbar;
-
-    &.scrolled {
-      @apply bg-secondary-700/95 backdrop-blur-sm shadow-sm shadow-secondary-600/50 backdrop-saturate-100;
-    }
-  }
-</style>
